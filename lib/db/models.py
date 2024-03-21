@@ -4,6 +4,29 @@ class User:
     def  __init__(self, name, ID):
         self._name  = name
         self._ID = ID
+        
+    @property
+    def name(self, value):
+        return self._name
+    @name.setter
+    def name(self, value):
+        if isinstance(value, str) and len(value)>0:
+            self._name=value
+        else:
+            raise ValueError("Name must be a non-empty string")
+        
+    @property
+    def ID(self):
+        return self._ID
+    
+    def ID(self, value):
+        if  isinstance(value, int) and value >0 :
+            self._ID = value
+        else:
+            raise ValueError('User ID must be a positive integer')
+        
+    def __str__(self):
+        print(f"Name: {self._name}, ID:{self._ID}")
     pass
 
 class Transactions:
@@ -50,32 +73,3 @@ class Categories:
 
 
 
-
-#Testing the code
-# u1 = User('John', '001')
-# u2 = User('Jane', '002')
-# t = Transactions()
-# t.add_transaction(u1, 50)
-# t.add_transaction(u2, 75.50)
-# print(t.get_all_transactions())
-'''
-# Testing the code
-u1 = User('John Doe', '001')
-u2 = User('Jane Smith','002')
-t = Transactions()
-c = Categories()
-
-print(u1.get_name()) # John Doe
-print(u2.get_name()) # Jane Smith
-
-t.add_transaction(u1, 50.50, datetime.now(), "Gas", "Food")
-t.add_transaction(u1, -30,'2021-04-06', "Coffee", "Entertainment")
-t.show_transactions(u1)
-
-c.add_category("Food")
-c.add_category("Transportation")
-c.show_categories()
-
-print(t.total_transactions_for_user(u1)) #  80.0
-print(t.total_transactions_for_user(u2)) #  0.0
-'''

@@ -1,0 +1,46 @@
+
+#Testing the code
+# u1 = User('John', '001')
+# u2 = User('Jane', '002')
+# t = Transactions()
+# t.add_transaction(u1, 50)
+# t.add_transaction(u2, 75.50)
+# print(t.get_all_transactions())
+'''
+# Testing the code
+u1 = User('John Doe', '001')
+u2 = User('Jane Smith','002')
+t = Transactions()
+c = Categories()
+
+print(u1.get_name()) # John Doe
+print(u2.get_name()) # Jane Smith
+
+t.add_transaction(u1, 50.50, datetime.now(), "Gas", "Food")
+t.add_transaction(u1, -30,'2021-04-06', "Coffee", "Entertainment")
+t.show_transactions(u1)
+
+c.add_category("Food")
+c.add_category("Transportation")
+c.show_categories()
+
+print(t.total_transactions_for_user(u1)) #  80.0
+print(t.total_transactions_for_user(u2)) #  0.0
+
+# Testing the class
+u1 = User("John",567894321)
+print(u1.display_user_info())
+u1.name="Alice"
+print(u1.display_user_info())
+try:
+   u1.name=123
+except Exception as e:
+   print(e)
+
+u2 = User("Bob","bobID")
+print(u2.display_user_info())
+try:
+   u2.ID=9527
+except Exception as e:
+   print(e)
+'''
