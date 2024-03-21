@@ -7,29 +7,18 @@ import datetime
 Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String(64), nullable=False)
     email = Column(String(12), unique=True, index=True)
     password_hash = Column(String(128), nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.now())
-    last_login = Column(DateTime)
-    updated_at = Column(DateTime, onupdate=datetime.datetime.now())
-
-    def set_password(self, password):
-        self.password_hash = bcrypt.encrypt(password)
-        
-    def check_password(self, password):
-        return bcrypt.verify(password, self.password_hash)  
-    
-    def update_last_login(self):
-        self.last_login = datetime.datetime.now()  
+    created_at = Column(DateTime, default=datetime.datetime.now.today)
+    updated_at = Column(DateTime, onupdate=datetime.datetime.now.today)
     
 class Transactions(Base):
     """Model representing transactions made."""
     __tablename__ = 'transactions'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    amount = Column(float, nullable=False)
+    id = Column(Integer, primary_key=True)
+    user_id = (Integer(ForeignKey('users.id')), )
     date = Column(DateTime, default=datetime.datetime.now())
     description = Column(String(255))
     user = relationship("User", back_populates="transactions")    
@@ -37,7 +26,7 @@ class Transactions(Base):
 class Category(Base):
     """Model representing categories for expenses."""
     __tablename__ = 'categories'
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)
     label = Column(String(30), nullable=False)
     user_id = Column(Integer(ForeignKey('users.id')))
     user = relationship("User", backref='categories', lazy='joined')
@@ -76,12 +65,7 @@ def authenticate_user(email, password):
     db_session = Session()
     user = db_session.query(User).filter_by(email=email).first()
     if user is None or bcrypt.checkpw(password.encode('utf-8'), user.password_hash) == False:
-        return "Invalid credentials"
+        return None
     else:
-        user.last_login = datetime.now()
-        db_session.commit() # Update last login time
-        db_session.expunge_all() # Expunge so we don't accidentally load this object again later
         return user
-        
-
     
