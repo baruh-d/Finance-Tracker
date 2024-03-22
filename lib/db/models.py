@@ -1,4 +1,10 @@
+#!/usr/bin/env python3
+
 #import necessary libraries
+
+import sys
+
+print(sys.path)
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm  import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -20,6 +26,9 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.datetime.now())
     last_login = Column(DateTime)
     updated_at = Column(DateTime, onupdate=datetime.datetime.now())
+    
+    #relationship to transactions model (one to many relationship)
+    transactions = relationship("Transaction", back_populates="user")
 
     #defining a method to set the user's password using bcrypt for password encryption
     def set_password(self, password, user_id):
@@ -64,7 +73,7 @@ class Transactions(Base):
     date = Column(DateTime, default=datetime.datetime.now())
     description = Column(String(255))
     
-    #Relationship to the user model
+    #Relationship to the user model (one to many relationship)
     user = relationship("User", back_populates="transactions")    
     
 class Category(Base):
