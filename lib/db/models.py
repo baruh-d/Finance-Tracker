@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 
 #import necessary libraries
-
-import sys
-
-print(sys.path)
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, Float, String, DateTime, ForeignKey
 from sqlalchemy.orm  import relationship, sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.exc import IntegrityError
 from passlib.hash import bcrypt #for password encryption
 import datetime
@@ -17,12 +13,12 @@ Base = declarative_base()
 #define the user tabla in the database
 class User(Base):
     #table name
-    __tablename__ = "users"
+    __tablename__: str = "users"
     #defining the columns for the table
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(64), nullable=False)
-    email = Column(String(20), unique=True, index=True)
-    password_hash = Column(String(128), nullable=False)
+    id: int = Column(Integer, primary_key=True, autoincrement=True)
+    name:str = Column(String(64), nullable=False)
+    email:str = Column(String(20), unique=True, index=True)
+    password_hash:str = Column(String(128), nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.now())
     last_login = Column(DateTime)
     updated_at = Column(DateTime, onupdate=datetime.datetime.now())
@@ -41,7 +37,7 @@ class User(Base):
     #defining a method to check if the entered password is correct or not
     def check_password(self, password):
         #spliting the salted password into two parts: user ID and password
-        return bcrypt.verify(password.encode('utf-8'), self.password_hash)  
+        return bcrypt.verify(secret=password.encode('utf-8'), hash=self.password_hash)  
     
     #updating  the login time everytime when someone logs in
     @staticmethod
@@ -65,13 +61,13 @@ class User(Base):
 class Transactions(Base):
     """Model representing transactions made."""
     #table name
-    __tablename__ = 'transactions'
+    __tablename__: str = 'transactions'
     #columns for transactions table
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    amount = Column(float, nullable=False)
+    id:int = Column(Integer, primary_key=True, autoincrement=True)
+    user_id:int = Column(Integer, ForeignKey('users.id'), nullable=False)
+    amount:float = Column(Float, nullable=False)
     date = Column(DateTime, default=datetime.datetime.now())
-    description = Column(String(255))
+    description:str = Column(String(255))
     
     #Relationship to the user model (one to many relationship)
     user = relationship("User", back_populates="transactions")    
@@ -79,11 +75,11 @@ class Transactions(Base):
 class Category(Base):
     """Model representing categories for expenses."""
     #table name
-    __tablename__ = 'categories'
+    __tablename__: str = 'categories'
     #columns for categories table
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    label = Column(String(30), nullable=False)
-    user_id = Column(Integer(ForeignKey('users.id')))
+    id:int = Column(Integer, primary_key=True, autoincrement=True)
+    label:str = Column(String(30), nullable=False)
+    user_id:int = Column(Integer, ForeignKey('users.id'))
     
     #relationship to user model
     user = relationship("User", backref='categories', lazy='joined')
@@ -102,12 +98,13 @@ def add_user(name, email, password):
             raise ValueError("Email already exists.")
         #create new user object    
         user = User(name=name, email=email)
-        user.set_password(password, user.id)  #hashes the password before storing
         #establishing connection with db session
         db_session = Session()
         #adding new user object to database session
         db_session.add(user)
         #commit the transaction to the database, saving new user
+        db_session.commit()
+        user.set_password(password=password, user_id=user.id)  #hashes the password before storing
         db_session.commit()
         #retrun newly created user object
         return user
