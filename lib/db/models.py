@@ -41,14 +41,14 @@ class User(Base):
     
     #updating  the login time everytime when someone logs in
     @staticmethod
-    def update_last_login(session, user_id):
+    def update_last_login(db_session, user_id):
         #get the user object from the current session
-        user = session.query(User).filter_by(id=user_id).first()
+        user = db_session.query(User).filter_by(id=user_id).first()
         #update the last login attribute of the user
         user.last_login = datetime.datetime.now()
         #commit the changes to the database
         try:
-            session.commit()
+            db_session.commit()
         except Exception as e:
             print("Error while updating the last login")
             raise e
@@ -67,7 +67,7 @@ class Transactions(Base):
     user_id:int = Column(Integer, ForeignKey('users.id'), nullable=False)
     amount:float = Column(Float, nullable=False)
     date = Column(DateTime, default=datetime.datetime.now())
-    description:str = Column(String(255))
+    description:str = Column(String(255), nullable=True)
     
     #Relationship to the user model (one to many relationship)
     user = relationship("User", back_populates="transactions")    
@@ -93,13 +93,13 @@ def add_user(name, email, password):
     """Add a new user to the users table in the database.
     create a new user object with given name, email and hashed password"""
     try:
-        existing_user = User.query.filter_by(email=email).first()
+        #establishing connection with db session
+        db_session = Session()
+        existing_user = db_session.query(User).filter_by(email=email).first()
         if existing_user is not None:
             raise ValueError("Email already exists.")
         #create new user object    
         user = User(name=name, email=email)
-        #establishing connection with db session
-        db_session = Session()
         #adding new user object to database session
         db_session.add(user)
         #commit the transaction to the database, saving new user
@@ -152,6 +152,18 @@ def authenticate_user(email, password):
         return user
     else:
         return "Invalid Email or Password"
+    
+def add_transaction(user_id, amount, date, transaction):
+    """Add a transaction to the transactions table."""
+    #Create a new Transaction object with the provided data
+    trans = Transactions(user_id=user_id, amount=amount, date=date, description=transaction)
+    #add this new transaction to the transactions table in the database
+    Session().add(trans)
+    #Commit the change to the database
+    Session().commit()
+    # Query functions are defined in models/__init__.py file    
+    #Return the newly created transaction
+    return trans.serialize()
        
         
 
