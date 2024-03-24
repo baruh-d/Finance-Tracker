@@ -29,6 +29,9 @@ def generate_data(n_users, n_categories, num_transactions):
     #commit changes
     db_session.commit()
     
+    #extracting category IDs
+    category_ids = {category.id for category in categories}
+    
     #generating transaction data using associated classes/methods 
     transactions = []
     for user in users:
@@ -36,12 +39,12 @@ def generate_data(n_users, n_categories, num_transactions):
         for _ in range(num_transactions):
             amount = fake.random(min=1, max=999999) #amount range to rep ksh
             transaction_type = random.choice(['debit', 'credit'])
-            category = random.choice(categories)
+            category_id = random.choice(category_ids)
             #generating random date within the specified range
             random_date = start_date + timedelta(days=random.randint(0, (end_date - start_date).days))
             transaction = Transactions(
                 user_id=user.id, 
-                category_id=category.id,
+                category_id=category_id,
                 description=fake.sentence(), 
                 amount=amount,
                 transaction_type=transaction_type,
