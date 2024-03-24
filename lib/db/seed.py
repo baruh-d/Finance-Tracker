@@ -23,6 +23,8 @@ def generate_data(n_users, n_categories, num_transactions):
     
      #generating categories
     categories = {Category(label=fake.word()) for _ in range(n_categories)}
+    while len(categories) < n_categories:
+        categories.add(Category(label=fake.word()))
     db_session.bulk_save_objects(categories)
     #commit changes
     db_session.commit()
