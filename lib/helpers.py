@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
+
 from db.models import get_all_transactions
-from datetime import datetime
 from collections import defaultdict
 def user_transactions_to_dict(transactions):
     """Covert the list of transactions into a dictionary with the transactions IDs as key"""
