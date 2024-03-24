@@ -1,6 +1,6 @@
 {
     "python.analysis.extraPaths": ["/media/baru/New Volume/Development/code/Phase3/venus/phase3-project"],
     "python.analysis.autoSearchPaths": true,
-    "python.analysis.typeshedPaths": ["/home/baru/.local/share/virtualenvs/phase3-project-vcqAnqhf/lib/python3.10/site-packages"],
-    "python.analysis.stubPath": "./home/baru/.local/share/virtualenvs/phase3-project-vcqAnqhf/lib/python3.10/site-packages"
+    "python.analysis.typeshedPaths": ["/home/baru/.local/lib/python3.10/site-packages"],
+    "python.analysis.stubPath": "/home/baru/.local/lib/python3.10/site-packages"
 }
