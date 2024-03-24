@@ -256,7 +256,7 @@ def group_category():
     except Exception as e:
         print(f"Error occured when grouping categories:\n{e}")
         
-        
+          
     
        
 # # Add a debit transaction
