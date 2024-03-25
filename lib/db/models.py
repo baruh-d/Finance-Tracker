@@ -5,7 +5,8 @@ from sqlalchemy import create_engine, Column, Integer, Float, String, DateTime, 
 from sqlalchemy.orm  import relationship, sessionmaker
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.exc import IntegrityError
-from passlib.hash import bcrypt #for password encryption
+import bcrypt #for password encryption 
+from typing import List
 import datetime
 
 #define the base class for all tables in the database
@@ -26,20 +27,22 @@ class User(Base):
     #relationship to transactions model (one to many relationship)
     transactions = relationship("Transaction", back_populates="user", uselist=True)
 
-    #defining a method to set the user's password using bcrypt for password encryption
-    def set_password(self, password, user_id):
-        """set the user password using bcrypt password encryprion"""
+    def set_password(self, password):
+        """Set the user password using bcrypt password encryption."""
         salt = bcrypt.gensalt(rounds=10)
-        #concatenate password with the user ID
-        salted_password = str(user_id) + '@' + password
-        #hash the slated password
+        # Concatenate password with the user ID
+        salted_password = str(self.id) + '@' + password
+        # Hash the salted password
         self.password_hash = bcrypt.hashpw(salted_password.encode('utf-8'), salt)
-    #defining a method to check if the entered password is correct or not
+
+    #method to check if the entered password is correct or not
     def check_password(self, password):
-        #spliting the salted password into two parts: user ID and password
-        return bcrypt.verify(secret=password.encode('utf-8'), hash=self.password_hash)  
-    
-    #updating  the login time everytime when someone logs in
+        # Concatenate password with the user ID
+        salted_password = str(self.id) + '@' + password
+        # Verify the password
+        return bcrypt.verify(salted_password.encode('utf-8'), self.password_hash.encode('utf-8'))
+
+        #updating  the login time everytime when someone logs in
     @staticmethod
     def update_last_login(db_session, user_id):
         try:
@@ -58,17 +61,17 @@ class User(Base):
     def get_user_by_email(db_session, email):
         return db_session.query(User ).filter_by(email=email).first()        
         
-class Transactions(Base):
+class Transaction(Base):
     """Model representing transactions made."""
     #table name
-    __tablename__: str = 'transactions'
+    __tablename__: str = 'transaction'
     #columns for transactions table
     id:int = Column(Integer, primary_key=True, autoincrement=True)
     user_id:int = Column(Integer, ForeignKey('users.id'), nullable=False)
     amount:float = Column(Float, nullable=False)
     date = Column(DateTime, default=datetime.datetime.now())
     description:str = Column(String(255), nullable=True)
-    trasaction_type:str = Column(String(10)) #debit or credit
+    transaction_type:str = Column(String(10)) #debit or credit
     
     #Relationship to the user model (one to many relationship)
     user = relationship("User", back_populates="transactions")    
@@ -150,7 +153,7 @@ def authenticate_user(email, password):
     ones stored in the database."""
     try:
         #Query the user with the provided email
-        user = User.get_user_by_email(Session(), email())
+        user = User.get_user_by_email(Session(), email)
         #check if user exists
         if user and user.check_password(password):
             #update last login time of the user
@@ -174,7 +177,7 @@ def add_transaction(user_id, amount, date, description, transaction_type=None):
         if transaction_type is None:
             transaction_type = "debit" if amount < 0 else "credit"
         #Create a new Transaction object with the provided data
-        trans = Transactions(user_id=user_id, amount=amount, date=date, description=description, transaction_type=transaction_type)
+        trans = Transaction(user_id=user_id, amount=amount, date=date, description=description, transaction_type=transaction_type)
         db_session.add(trans)
         #Commit the change to the database
         db_session.commit()   
@@ -190,7 +193,7 @@ def  get_all_transactions():
     #Use the query function to select all records from the transactions table
     try:
         #Execute the query and fetch all results
-        result = db_session.query(Transactions).order_by(Transactions.date.desc()).all()
+        result = db_session.query(Transaction).order_by(Transaction.date.desc()).all()
     finally:
         db_session.close()
         return result
@@ -199,7 +202,7 @@ def delete_transaction(transaction_id):
     #use the remove method on the session object to remove the record with the given id from the transactions table
     try:
         db_session = Session()
-        trans = db_session.query(Transactions).filter_by(id=transaction_id).first()
+        trans = db_session.query(Transaction).filter_by(id=transaction_id).first()
         #if no transaction is found by that transaction_id raise ValueError
         if not trans:
             raise ValueError("No transaction found with that transaction_ID")
