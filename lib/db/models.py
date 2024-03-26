@@ -22,11 +22,11 @@ class User(Base):
     password_hash:str = Column(String(128), nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.now())
     last_login = Column(DateTime, default=datetime.datetime.now())
-    updated_at = Column(DateTime, onupdate=datetime.datetime.now())
+    updated_at = Column(DateTime, default=datetime.datetime.now, onupdate=datetime.datetime.now())
     
     #relationship to transactions model (one to many relationship)
     transactions = relationship("Transaction", back_populates="user", uselist=True)
-
+    
     def set_password(self, password):
         """Set the user password using bcrypt password encryption."""
         salt = bcrypt.gensalt(rounds=10)
@@ -43,24 +43,7 @@ class User(Base):
         return bcrypt.verify(salted_password.encode('utf-8'), self.password_hash.encode('utf-8'))
 
         #updating  the login time everytime when someone logs in
-    @staticmethod
-    def update_last_login(db_session, user_id):
-        try:
-            #get the user object from the current session
-            user = db_session.query(User).filter_by(id=user_id).first()
-            #update the last login attribute of the user
-            user.last_login = datetime.datetime.now()
-            #commit the changes to the database
-            db_session.commit()
-        except Exception as e:
-            db_session.rollback()
-            print(f"Error while updating the last login:\n{e}")
-            
-    #retrieving user  information based on the given email address
-    @staticmethod
-    def get_user_by_email(db_session, email):
-        return db_session.query(User ).filter_by(email=email).first()        
-        
+   
 class Transaction(Base):
     """Model representing transactions made."""
     #table name
@@ -68,6 +51,7 @@ class Transaction(Base):
     #columns for transactions table
     id:int = Column(Integer, primary_key=True, autoincrement=True)
     user_id:int = Column(Integer, ForeignKey('users.id'), nullable=False)
+    category_id = Column(Integer, ForeignKey('categories.id'))  # Adding category_id column
     amount:float = Column(Float, nullable=False)
     date = Column(DateTime, default=datetime.datetime.now())
     description:str = Column(String(255), nullable=True)
@@ -75,6 +59,9 @@ class Transaction(Base):
     
     #Relationship to the user model (one to many relationship)
     user = relationship("User", back_populates="transactions")    
+    
+    # Relationship to the Category model (many-to-one relationship)
+    category = relationship("Category", back_populates="transactions") 
     
 class Category(Base):
     """Model representing categories for expenses."""
@@ -87,6 +74,9 @@ class Category(Base):
     
     #relationship to user model
     user = relationship("User", backref='categories', lazy='joined')
+    
+    # Relationship to the Transaction model (one-to-many relationship)
+    transactions = relationship("Transaction", back_populates="category")
 
 # Connect to the database
 engine = create_engine('sqlite:///finance_tracker.db', echo=True)
@@ -129,6 +119,29 @@ def get_all_users():
         return users
     except Exception as e:
         print(f'Error occured when fetching users:\n{e}')
+
+def get_user_by_email(email):
+    """Retrieve user information based on the given email address."""
+    try:
+        db_session = Session()
+        user = db_session.query(User).filter_by(email=email).first()
+        db_session.close()
+        return user
+    except Exception as e:
+        print(f"Error while retrieving user by email:\n{e}")
+        return None
+
+def update_last_login(user_id):
+    """Update the last login time for the user."""
+    try:
+        db_session = Session()
+        user = db_session.query(User).filter_by(id=user_id).first()
+        user.last_login = datetime.datetime.now()
+        db_session.commit()
+        db_session.close()
+    except Exception as e:
+        db_session.rollback()
+        print(f"Error while updating the last login:\n{e}")
         
 def delete_user(user_id):
     """Delete a user with given user ID from the users table."""
@@ -153,11 +166,11 @@ def authenticate_user(email, password):
     ones stored in the database."""
     try:
         #Query the user with the provided email
-        user = User.get_user_by_email(Session(), email)
+        user = get_user_by_email(Session(), email)
         #check if user exists
         if user and user.check_password(password):
             #update last login time of the user
-            user.update_last_login = datetime.datetime.now()
+            update_last_login(Session(), user.id)
             #save the change to the user's information
             db_session = Session()
             db_session.commit()
@@ -168,25 +181,8 @@ def authenticate_user(email, password):
     except Exception as e:
         print(f"Error occured during authentication:\n{e}")
     
-def add_transaction(user_id, amount, date, description, transaction_type=None):
-    """Add a transaction to the transactions table."""
-    try:
-        #add this new transaction to the transactions table in the database
-        db_session = Session()
-        # determine whether transaction is debit or credit based on amount
-        if transaction_type is None:
-            transaction_type = "debit" if amount < 0 else "credit"
-        #Create a new Transaction object with the provided data
-        trans = Transaction(user_id=user_id, amount=amount, date=date, description=description, transaction_type=transaction_type)
-        db_session.add(trans)
-        #Commit the change to the database
-        db_session.commit()   
-        #Return the newly created transaction
-        return trans
-    except Exception as e:
-        db_session.rollback()
-        print(f"Error occured when adding transaction:\n{e}")
-def  get_all_transactions():
+
+def get_all_transactions():
     """Get all transactions from the transactions table."""
     #create new db session
     db_session = Session()
@@ -197,6 +193,37 @@ def  get_all_transactions():
     finally:
         db_session.close()
         return result
+    
+# function to get the current balance for a user
+def get_current_balance(user_id):
+    """Calculate the current balance for a user."""
+    transactions = get_all_transactions()
+    total = 0
+    for transaction in transactions:
+        # Check if the transaction belongs to the given user
+        if transaction.user_id == user_id:
+            # Add the amount of the transaction to the total balance
+            total += transaction.amount
+    return total
+
+# Function to group transactions by category
+def group_transactions_by_category(transactions):
+    try:
+        grouped_transactions = {}
+        
+        for transaction in transactions:
+            if transaction["category"] in grouped_transactions:
+                grouped_transactions[transaction["category"]]["total_amount"] += transaction["amount"]
+            else:
+                grouped_transactions[transaction["category"]] = {
+                    "total_amount": transaction["amount"],
+                    "count": 1,
+                    "transactions": [transaction]
+                }
+        return grouped_transactions
+    except Exception as e:
+        print(f"Error occured when grouping categories:\n{e}")
+
 def delete_transaction(transaction_id):
     """Delete a specific transaction from the transactions table."""
     #use the remove method on the session object to remove the record with the given id from the transactions table
@@ -253,20 +280,15 @@ def group_category():
         #func.count is used to count the number of categories
         result = db_session.query(Category.user_id, func.count(Category.id)).group_by(Category.user_id).all()
         #close db session
-        db_session.close
+        db_session.close()
         #Return the result of the query
         return result
     except Exception as e:
         print(f"Error occured when grouping categories:\n{e}")
         
-          
+# Main code execution
+if __name__ == "__main__":
+    Base.metadata.create_all(engine)
+
     
-       
-# # Add a debit transaction
-# add_transaction(user_id=1, amount=-100.0, date=datetime.datetime.now(), description='Grocery purchase')
-
-# # Add a credit transaction
-# add_transaction(user_id=1, amount=50.0, date=datetime.datetime.now(), description='Refund')
-   
-
     
