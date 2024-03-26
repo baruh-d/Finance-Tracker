@@ -122,6 +122,7 @@ To get started with the Finance Tracker Application:
 
 Clone the repository to your local machine.
 Install the project dependencies using Pipenv.
+Run the models,py to create the database schema.
 Run the seed.py script to populate the database with sample data.
 Execute the cli.py script to interact with the application via the command-line interface.
 Contribution
