@@ -39,8 +39,6 @@ def generate_data(n_users, num_transactions):
     start_date = fake.date_between(start_date='-4y', end_date='today')
     end_date = datetime.now()
 
-    # Reset categories table
-    reset_categories(db_session)
 
     # Generating user data with unique email addresses
     users = []
@@ -86,9 +84,9 @@ def generate_data(n_users, num_transactions):
 
     users = db_session.query(User).all()
 
-    transactions_data = []
 
     for user in users:
+        transactions_data = []
         num_transactions = random.randint(5, 20)
         for _ in range(num_transactions):
             amount = random.randint(1, 999999)
@@ -109,15 +107,18 @@ def generate_data(n_users, num_transactions):
         db_session.commit()
 
         # db_session.close()
-
-
-def reset_categories(db_session):
-    """Reset categories table to remove earlier created ones by fake.word."""
-    existing_categories = db_session.query(Category).all()
-    for category in existing_categories:
-        db_session.delete(category)
-    db_session.commit()
-
+def reset_categories():
+    """Delete all existing categories and repopulate with default categories."""
+    db_session = Session()
+    try:
+        # Delete all existing categories
+        db_session.query(Category).delete()
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        print(f"Error occurred while resetting categories: {e}")
+    finally:
+        db_session.close()
 
 def populate(n_users=15, num_transactions=100):
     generate_data(n_users, num_transactions)

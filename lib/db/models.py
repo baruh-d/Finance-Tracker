@@ -11,6 +11,8 @@ import datetime
 
 #define the base class for all tables in the database
 Base = declarative_base()
+
+
 #define the user tabla in the database
 class User(Base):
     #table name
@@ -193,36 +195,6 @@ def get_all_transactions():
     finally:
         db_session.close()
         return result
-    
-# function to get the current balance for a user
-def get_current_balance(user_id):
-    """Calculate the current balance for a user."""
-    transactions = get_all_transactions()
-    total = 0
-    for transaction in transactions:
-        # Check if the transaction belongs to the given user
-        if transaction.user_id == user_id:
-            # Add the amount of the transaction to the total balance
-            total += transaction.amount
-    return total
-
-# Function to group transactions by category
-def group_transactions_by_category(transactions):
-    try:
-        grouped_transactions = {}
-        
-        for transaction in transactions:
-            if transaction["category"] in grouped_transactions:
-                grouped_transactions[transaction["category"]]["total_amount"] += transaction["amount"]
-            else:
-                grouped_transactions[transaction["category"]] = {
-                    "total_amount": transaction["amount"],
-                    "count": 1,
-                    "transactions": [transaction]
-                }
-        return grouped_transactions
-    except Exception as e:
-        print(f"Error occured when grouping categories:\n{e}")
 
 def delete_transaction(transaction_id):
     """Delete a specific transaction from the transactions table."""
