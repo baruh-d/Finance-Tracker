@@ -8,6 +8,7 @@ The core feature of the Finance Tracker Application is its ability to manage tra
 Add Transactions: Easily add new transactions with details such as amount, category, description, and type (debit/credit).
 View Transactions: View a detailed history of all transactions, including transaction ID, user ID, category, amount, and type.
 Organize Transactions: Organize transactions by month and year to gain insights into spending patterns over time.
+
 2. User Authentication and Security
 The application ensures user security and privacy through robust authentication mechanisms and password encryption.
 
