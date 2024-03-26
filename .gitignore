@@ -1,6 +1,6 @@
 
 # Ignore finance_tracker.db file
-lib/db/finance_tracker.db
+lib/finance_tracker.db
 
 
 #Testing the code
