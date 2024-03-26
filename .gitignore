@@ -1,4 +1,8 @@
 
+# Ignore finance_tracker.db file
+lib/db/finance_tracker.db
+
+
 #Testing the code
 # u1 = User('John', '001')
 # u2 = User('Jane', '002')
