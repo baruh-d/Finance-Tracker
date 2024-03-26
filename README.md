@@ -14,11 +14,13 @@ The application ensures user security and privacy through robust authentication 
 
 User Authentication: Users can securely log in to their accounts using their email address and password.
 Password Encryption: User passwords are encrypted using the Bcrypt library, ensuring that sensitive information remains secure in the database.
+
 3. Category Management
 Users can categorize transactions into predefined categories for better organization and analysis.
 
 Add Categories: Create custom categories to classify transactions based on their nature (e.g., groceries, utilities, entertainment).
 Group Categories: Group transactions by category to gain insights into spending habits across different expense categories.
+
 4. Current Balance Calculation
 Users can easily calculate their current account balance to track their financial standing in real-time.
 
